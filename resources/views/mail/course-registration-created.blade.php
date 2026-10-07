@@ -8,7 +8,7 @@ Na kurz se přihlásil nový účastník.
 |:--|:--|
 | **Jméno a příjmení** | {{ $user->name }} |
 | **E-mail** | {{ $user->email }} |
-| **Kurz** | {{ $course->title }} |
+| **Kurz** | {{ $course->name }} |
 | **Datum kurzu** | {{ $course->formattedTerm() }} |
 | **Místo** | {{ $course->place }} |
 </x-mail::table>

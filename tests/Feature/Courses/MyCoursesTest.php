@@ -23,17 +23,17 @@ class MyCoursesTest extends TestCase
 
         $this->get(route('courses.mine'))
             ->assertOk()
-            ->assertSee($mine->course->title)
-            ->assertDontSee($other->course->title);
+            ->assertSee($mine->course->name)
+            ->assertDontSee($other->course->name);
     }
 
     public function test_past_courses_offer_a_certificate_only_when_attended(): void
     {
         $user = User::factory()->create();
         $attended = CourseRegistration::factory()->attended()->for($user)
-            ->for(Course::factory()->past()->state(['title' => 'Attended course']))->create();
+            ->for(Course::factory()->past()->state(['name' => 'Attended course']))->create();
         CourseRegistration::factory()->for($user)
-            ->for(Course::factory()->past()->state(['title' => 'Missed course']))->create();
+            ->for(Course::factory()->past()->state(['name' => 'Missed course']))->create();
 
         $this->actingAs($user);
 

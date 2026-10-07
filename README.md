@@ -53,7 +53,14 @@ php artisan app:make-admin jmeno@firma.cz --revoke   # odebrání práv
 | `MAIL_*` | Nastavení odesílání e-mailů (SMTP). |
 | `APP_TIMEZONE` | Časové pásmo, výchozí `Europe/Prague`. |
 
-Seznam kategorií kurzů je v `config/courses.php`.
+## Databáze
+
+| Tabulka | Sloupce |
+|---|---|
+| `courses` | `id`, `start`, `end` (datetime), `name`, `place`, `capacity`, `content` (obsah, nullable), `user_id` (admin, který kurz založil), `created_at`, `updated_at` |
+| `categories` | `id`, `name`. Výchozí kategorie vloží migrace. |
+| `category_course` | `category_id`, `course_id` (vazba M:N, kurz může mít více kategorií) |
+| `course_registrations` | `id`, `course_id`, `user_id`, `attended`, `created_at`, `updated_at` (přihlášky a účast) |
 
 ## Struktura
 

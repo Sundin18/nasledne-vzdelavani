@@ -19,7 +19,7 @@
 <body>
     <h1>Prezenční listina</h1>
     <p class="meta">
-        <strong style="color: #171717;">{{ $course->title }}</strong><br>
+        <strong style="color: #171717;">{{ $course->name }}</strong><br>
         {{ $course->formattedTerm() }} · {{ $course->place }} · přihlášeno {{ $registrations->count() }} z {{ $course->capacity }}
     </p>
 

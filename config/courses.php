@@ -27,22 +27,4 @@ return [
 
     'signatory' => env('COURSES_SIGNATORY'),
 
-    /*
-    |--------------------------------------------------------------------------
-    | Categories
-    |--------------------------------------------------------------------------
-    |
-    | Categories an administrator can assign to a course. A course may have
-    | several of them.
-    |
-    */
-
-    'categories' => [
-        'Obecné',
-        'Životní pojištění',
-        'Neživotní pojištění',
-        'Spotřebitelské úvěry',
-        'Investice',
-    ],
-
 ];

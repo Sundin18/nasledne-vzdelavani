@@ -16,7 +16,7 @@ new #[Title('Detail kurzu')] class extends Component {
     {
         Gate::authorize('admin');
 
-        $this->course = $course;
+        $this->course = $course->load('categories');
     }
 
     /**
@@ -63,10 +63,10 @@ new #[Title('Detail kurzu')] class extends Component {
     {
         Gate::authorize('admin');
 
-        $title = $this->course->title;
+        $name = $this->course->name;
         $this->course->delete();
 
-        Flux::toast(text: 'Kurz „'.$title.'“ byl smazán.');
+        Flux::toast(text: 'Kurz „'.$name.'“ byl smazán.');
 
         $this->redirectRoute('courses.index', navigate: true);
     }
@@ -84,13 +84,13 @@ new #[Title('Detail kurzu')] class extends Component {
         <div class="space-y-2">
             <div class="flex flex-wrap gap-1.5">
                 @foreach ($course->categories as $category)
-                    <flux:badge size="sm">{{ $category }}</flux:badge>
+                    <flux:badge size="sm">{{ $category->name }}</flux:badge>
                 @endforeach
                 @if ($course->hasStarted())
                     <flux:badge size="sm" color="zinc">Proběhlo</flux:badge>
                 @endif
             </div>
-            <flux:heading size="xl" level="1">{{ $course->title }}</flux:heading>
+            <flux:heading size="xl" level="1">{{ $course->name }}</flux:heading>
         </div>
 
         <div class="flex flex-wrap gap-2">
@@ -105,11 +105,11 @@ new #[Title('Detail kurzu')] class extends Component {
         <dl class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div>
                 <dt class="text-sm text-zinc-500 dark:text-zinc-400">Začátek</dt>
-                <dd class="mt-1 font-semibold text-zinc-900 dark:text-white">{{ $course->starts_at->format('j. n. Y, G:i') }}</dd>
+                <dd class="mt-1 font-semibold text-zinc-900 dark:text-white">{{ $course->start->format('j. n. Y, G:i') }}</dd>
             </div>
             <div>
                 <dt class="text-sm text-zinc-500 dark:text-zinc-400">Konec</dt>
-                <dd class="mt-1 font-semibold text-zinc-900 dark:text-white">{{ $course->ends_at->format('j. n. Y, G:i') }}</dd>
+                <dd class="mt-1 font-semibold text-zinc-900 dark:text-white">{{ $course->end->format('j. n. Y, G:i') }}</dd>
             </div>
             <div>
                 <dt class="text-sm text-zinc-500 dark:text-zinc-400">Místo</dt>
@@ -204,7 +204,7 @@ new #[Title('Detail kurzu')] class extends Component {
             <div>
                 <flux:heading size="lg">Smazat kurz?</flux:heading>
                 <flux:text class="mt-2">
-                    Kurz „{{ $course->title }}“ bude smazán včetně {{ $this->registrations->count() }} přihlášek a záznamů o účasti. Akci nelze vrátit.
+                    Kurz „{{ $course->name }}“ bude smazán včetně {{ $this->registrations->count() }} přihlášek a záznamů o účasti. Akci nelze vrátit.
                 </flux:text>
             </div>
 

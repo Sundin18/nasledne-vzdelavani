@@ -58,6 +58,6 @@ class CourseRegistration extends Model
      */
     public function certificateNumber(): string
     {
-        return sprintf('NV-%s-%05d', $this->course->starts_at->format('Y'), $this->id);
+        return sprintf('NV-%s-%05d', $this->course->start->format('Y'), $this->id);
     }
 }

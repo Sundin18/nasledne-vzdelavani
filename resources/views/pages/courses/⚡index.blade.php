@@ -35,7 +35,7 @@ new #[Title('Kurzy')] class extends Component {
     #[Computed]
     public function courses(): Collection
     {
-        $query = Course::query()->withCount('registrations');
+        $query = Course::query()->with('categories')->withCount('registrations');
 
         return $this->isAdmin && $this->show === 'past'
             ? $query->past()->get()
@@ -68,7 +68,7 @@ new #[Title('Kurzy')] class extends Component {
 
         $this->refreshCourses();
 
-        Flux::toast(variant: 'success', text: 'Jste přihlášeni na kurz „'.$course->title.'“.');
+        Flux::toast(variant: 'success', text: 'Jste přihlášeni na kurz „'.$course->name.'“.');
     }
 
     /**
@@ -88,7 +88,7 @@ new #[Title('Kurzy')] class extends Component {
 
         $this->refreshCourses();
 
-        Flux::toast(text: 'Byli jste odhlášeni z kurzu „'.$course->title.'“.');
+        Flux::toast(text: 'Byli jste odhlášeni z kurzu „'.$course->name.'“.');
     }
 
     public function confirmDelete(int $courseId): void
@@ -111,7 +111,7 @@ new #[Title('Kurzy')] class extends Component {
         $this->refreshCourses();
 
         Flux::modal('delete-course')->close();
-        Flux::toast(text: 'Kurz „'.$course->title.'“ byl smazán.');
+        Flux::toast(text: 'Kurz „'.$course->name.'“ byl smazán.');
     }
 
     private function refreshCourses(): void
@@ -158,24 +158,24 @@ new #[Title('Kurzy')] class extends Component {
                 <div class="flex flex-wrap items-center gap-5">
                     <div class="w-18 shrink-0 overflow-hidden rounded-lg border border-zinc-200 text-center dark:border-zinc-700">
                         <div class="bg-accent py-1 text-xs font-semibold uppercase tracking-wide text-accent-foreground">
-                            {{ $course->starts_at->locale('cs')->isoFormat('MMM') }}
+                            {{ $course->start->locale('cs')->isoFormat('MMM') }}
                         </div>
-                        <div class="pt-1.5 text-2xl font-bold text-zinc-900 dark:text-white">{{ $course->starts_at->format('j') }}</div>
-                        <div class="pb-1.5 text-xs text-zinc-500 dark:text-zinc-400">{{ $course->starts_at->locale('cs')->isoFormat('dddd') }}</div>
+                        <div class="pt-1.5 text-2xl font-bold text-zinc-900 dark:text-white">{{ $course->start->format('j') }}</div>
+                        <div class="pb-1.5 text-xs text-zinc-500 dark:text-zinc-400">{{ $course->start->locale('cs')->isoFormat('dddd') }}</div>
                     </div>
 
                     <div class="min-w-0 flex-1 basis-80 space-y-2">
                         <div class="flex flex-wrap gap-1.5">
                             @foreach ($course->categories as $category)
-                                <flux:badge size="sm">{{ $category }}</flux:badge>
+                                <flux:badge size="sm">{{ $category->name }}</flux:badge>
                             @endforeach
                         </div>
 
                         <flux:heading size="lg">
                             @if ($this->isAdmin)
-                                <flux:link :href="route('admin.courses.show', $course)" variant="ghost" wire:navigate>{{ $course->title }}</flux:link>
+                                <flux:link :href="route('admin.courses.show', $course)" variant="ghost" wire:navigate>{{ $course->name }}</flux:link>
                             @else
-                                {{ $course->title }}
+                                {{ $course->name }}
                             @endif
                         </flux:heading>
 

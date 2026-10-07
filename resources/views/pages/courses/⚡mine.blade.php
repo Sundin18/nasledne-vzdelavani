@@ -23,9 +23,9 @@ new #[Title('Moje kurzy')] class extends Component {
     public function registrations(): Collection
     {
         return Auth::user()->courseRegistrations()
-            ->with('course')
+            ->with('course.categories')
             ->get()
-            ->sortBy('course.starts_at')
+            ->sortBy('course.start')
             ->values();
     }
 
@@ -61,7 +61,7 @@ new #[Title('Moje kurzy')] class extends Component {
 
         unset($this->registrations, $this->upcoming, $this->past);
 
-        Flux::toast(text: 'Byli jste odhlášeni z kurzu „'.$registration->course->title.'“.');
+        Flux::toast(text: 'Byli jste odhlášeni z kurzu „'.$registration->course->name.'“.');
     }
 }; ?>
 
@@ -84,15 +84,15 @@ new #[Title('Moje kurzy')] class extends Component {
 
             <flux:card wire:key="registration-{{ $registration->id }}" class="flex flex-wrap items-center gap-x-6 gap-y-4">
                 <div class="w-32 shrink-0">
-                    <div class="font-semibold text-zinc-900 dark:text-white">{{ $course->starts_at->format('j. n. Y') }}</div>
+                    <div class="font-semibold text-zinc-900 dark:text-white">{{ $course->start->format('j. n. Y') }}</div>
                     <div class="text-sm text-zinc-500 dark:text-zinc-400">
-                        {{ $course->starts_at->format('G:i') }} – {{ $course->ends_at->format('G:i') }}
+                        {{ $course->start->format('G:i') }} – {{ $course->end->format('G:i') }}
                     </div>
                 </div>
 
                 <div class="min-w-0 flex-1 basis-72">
-                    <flux:heading>{{ $course->title }}</flux:heading>
-                    <flux:text class="mt-1">{{ implode(', ', $course->categories) }} · {{ $course->place }}</flux:text>
+                    <flux:heading>{{ $course->name }}</flux:heading>
+                    <flux:text class="mt-1">{{ $course->categoryNames() }} · {{ $course->place }}</flux:text>
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2">

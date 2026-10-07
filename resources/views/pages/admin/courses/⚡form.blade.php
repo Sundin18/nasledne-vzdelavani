@@ -1,24 +1,28 @@
 <?php
 
+use App\Models\Category;
 use App\Models\Course;
 use Flux\Flux;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Validation\Rule;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Component;
 
 new #[Title('Kurz')] class extends Component {
     public ?Course $course = null;
 
-    public string $title = '';
+    public string $name = '';
 
-    /** @var array<int, string> */
+    /** @var array<int, int|string> */
     public array $categories = [];
 
-    public string $starts_at = '';
+    public string $start = '';
 
-    public string $ends_at = '';
+    public string $end = '';
 
     public string $place = '';
 
@@ -35,13 +39,22 @@ new #[Title('Kurz')] class extends Component {
         }
 
         $this->course = $course;
-        $this->title = $course->title;
-        $this->categories = $course->categories;
-        $this->starts_at = $course->starts_at->format('Y-m-d\TH:i');
-        $this->ends_at = $course->ends_at->format('Y-m-d\TH:i');
+        $this->name = $course->name;
+        $this->categories = $course->categories()->pluck('categories.id')->map(fn ($id) => (string) $id)->all();
+        $this->start = $course->start->format('Y-m-d\TH:i');
+        $this->end = $course->end->format('Y-m-d\TH:i');
         $this->place = $course->place;
         $this->capacity = $course->capacity;
         $this->content = (string) $course->content;
+    }
+
+    /**
+     * @return Collection<int, Category>
+     */
+    #[Computed]
+    public function allCategories(): Collection
+    {
+        return Category::query()->orderBy('name')->get();
     }
 
     /**
@@ -52,11 +65,11 @@ new #[Title('Kurz')] class extends Component {
         $registered = $this->course?->registrations()->count() ?? 0;
 
         return [
-            'title' => ['required', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:255'],
             'categories' => ['required', 'array', 'min:1'],
-            'categories.*' => ['string', Rule::in(config('courses.categories'))],
-            'starts_at' => ['required', 'date'],
-            'ends_at' => ['required', 'date', 'after:starts_at'],
+            'categories.*' => ['integer', 'exists:categories,id'],
+            'start' => ['required', 'date'],
+            'end' => ['required', 'date', 'after:start'],
             'place' => ['required', 'string', 'max:255'],
             'capacity' => ['required', 'integer', 'min:'.max(1, $registered), 'max:10000'],
             'content' => ['nullable', 'string'],
@@ -69,10 +82,10 @@ new #[Title('Kurz')] class extends Component {
     protected function validationAttributes(): array
     {
         return [
-            'title' => 'název',
+            'name' => 'název',
             'categories' => 'kategorie',
-            'starts_at' => 'začátek',
-            'ends_at' => 'konec',
+            'start' => 'začátek',
+            'end' => 'konec',
             'place' => 'místo',
             'capacity' => 'kapacita',
             'content' => 'obsah',
@@ -86,21 +99,25 @@ new #[Title('Kurz')] class extends Component {
         $validated = $this->validate();
 
         $data = [
-            ...$validated,
-            'starts_at' => Date::parse($validated['starts_at']),
-            'ends_at' => Date::parse($validated['ends_at']),
+            'name' => $validated['name'],
+            'start' => Date::parse($validated['start']),
+            'end' => Date::parse($validated['end']),
+            'place' => $validated['place'],
             'capacity' => (int) $validated['capacity'],
             'content' => filled($validated['content']) ? $validated['content'] : null,
         ];
 
-        if ($this->course) {
-            $this->course->update($data);
-            $course = $this->course;
-        } else {
-            $course = Course::create($data);
-        }
+        $isNew = $this->course === null;
 
-        Flux::toast(variant: 'success', text: $this->course ? 'Kurz byl upraven.' : 'Kurz byl vytvořen.');
+        $course = DB::transaction(function () use ($data, $validated) {
+            $course = $this->course ?? new Course(['user_id' => Auth::id()]);
+            $course->fill($data)->save();
+            $course->categories()->sync(array_map('intval', $validated['categories']));
+
+            return $course;
+        });
+
+        Flux::toast(variant: 'success', text: $isNew ? 'Kurz byl vytvořen.' : 'Kurz byl upraven.');
 
         $this->redirectRoute('admin.courses.show', $course, navigate: true);
     }
@@ -117,19 +134,19 @@ new #[Title('Kurz')] class extends Component {
 
     <form wire:submit="save" class="flex flex-col gap-6">
         <flux:card class="flex flex-col gap-6">
-            <flux:input wire:model="title" label="Název kurzu" required autofocus />
+            <flux:input wire:model="name" label="Název kurzu" required autofocus />
 
             <flux:checkbox.group wire:model="categories" label="Kategorie" description="Lze vybrat více kategorií.">
                 <div class="flex flex-wrap gap-x-6 gap-y-3">
-                    @foreach (config('courses.categories') as $category)
-                        <flux:checkbox :value="$category" :label="$category" />
+                    @foreach ($this->allCategories as $category)
+                        <flux:checkbox :value="(string) $category->id" :label="$category->name" />
                     @endforeach
                 </div>
             </flux:checkbox.group>
 
             <div class="grid gap-6 sm:grid-cols-2">
-                <flux:input wire:model="starts_at" type="datetime-local" label="Začátek" required />
-                <flux:input wire:model="ends_at" type="datetime-local" label="Konec" required />
+                <flux:input wire:model="start" type="datetime-local" label="Začátek" required />
+                <flux:input wire:model="end" type="datetime-local" label="Konec" required />
             </div>
 
             <div class="grid gap-6 sm:grid-cols-2">

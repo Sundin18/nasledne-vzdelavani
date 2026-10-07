@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Courses;
 
+use App\Models\Category;
 use App\Models\Course;
 use App\Models\CourseRegistration;
 use App\Models\User;
@@ -34,19 +35,23 @@ class AdminCoursesTest extends TestCase
         $this->actingAs(User::factory()->admin()->create());
 
         $this->get(route('admin.courses.create'))->assertOk();
-        $this->get(route('admin.courses.show', $course))->assertOk()->assertSee($course->title);
+        $this->get(route('admin.courses.show', $course))->assertOk()->assertSee($course->name);
         $this->get(route('admin.courses.edit', $course))->assertOk();
     }
 
     public function test_admin_can_create_a_course(): void
     {
-        $this->actingAs(User::factory()->admin()->create());
+        $admin = User::factory()->admin()->create();
+        $general = Category::where('name', 'Obecné')->firstOrFail();
+        $credit = Category::where('name', 'Spotřebitelské úvěry')->firstOrFail();
+
+        $this->actingAs($admin);
 
         Livewire::test('pages::admin.courses.form')
-            ->set('title', 'AML a ochrana spotřebitele')
-            ->set('categories', ['Obecné', 'Spotřebitelské úvěry'])
-            ->set('starts_at', '2030-11-19T09:00')
-            ->set('ends_at', '2030-11-19T16:00')
+            ->set('name', 'AML a ochrana spotřebitele')
+            ->set('categories', [(string) $general->id, (string) $credit->id])
+            ->set('start', '2030-11-19T09:00')
+            ->set('end', '2030-11-19T16:00')
             ->set('place', 'Praha')
             ->set('capacity', 25)
             ->set('content', '<p>Program kurzu</p>')
@@ -55,11 +60,13 @@ class AdminCoursesTest extends TestCase
 
         $course = Course::sole();
 
-        $this->assertSame('AML a ochrana spotřebitele', $course->title);
-        $this->assertSame(['Obecné', 'Spotřebitelské úvěry'], $course->categories);
-        $this->assertSame('2030-11-19 09:00', $course->starts_at->format('Y-m-d H:i'));
-        $this->assertSame('2030-11-19 16:00', $course->ends_at->format('Y-m-d H:i'));
+        $this->assertSame('AML a ochrana spotřebitele', $course->name);
+        $this->assertSame('2030-11-19 09:00', $course->start->format('Y-m-d H:i'));
+        $this->assertSame('2030-11-19 16:00', $course->end->format('Y-m-d H:i'));
+        $this->assertSame('Praha', $course->place);
         $this->assertSame(25, $course->capacity);
+        $this->assertSame($admin->id, $course->user_id);
+        $this->assertEqualsCanonicalizing([$general->id, $credit->id], $course->categories->pluck('id')->all());
     }
 
     public function test_course_validation(): void
@@ -67,31 +74,37 @@ class AdminCoursesTest extends TestCase
         $this->actingAs(User::factory()->admin()->create());
 
         Livewire::test('pages::admin.courses.form')
-            ->set('title', '')
-            ->set('categories', ['Neexistující'])
-            ->set('starts_at', '2030-11-19T09:00')
-            ->set('ends_at', '2030-11-19T08:00')
+            ->set('name', '')
+            ->set('categories', ['999999'])
+            ->set('start', '2030-11-19T09:00')
+            ->set('end', '2030-11-19T08:00')
             ->set('place', 'Praha')
             ->set('capacity', 0)
             ->call('save')
-            ->assertHasErrors(['title', 'categories.0', 'ends_at', 'capacity']);
+            ->assertHasErrors(['name', 'categories.0', 'end', 'capacity']);
 
         $this->assertDatabaseCount('courses', 0);
     }
 
     public function test_admin_can_update_a_course(): void
     {
-        $course = Course::factory()->create(['title' => 'Old title']);
+        $course = Course::factory()->create(['name' => 'Old name']);
+        $course->categories()->sync([Category::where('name', 'Obecné')->firstOrFail()->id]);
+        $investments = Category::where('name', 'Investice')->firstOrFail();
 
         $this->actingAs(User::factory()->admin()->create());
 
         Livewire::test('pages::admin.courses.form', ['course' => $course])
-            ->assertSet('title', 'Old title')
-            ->set('title', 'New title')
+            ->assertSet('name', 'Old name')
+            ->set('name', 'New name')
+            ->set('categories', [(string) $investments->id])
             ->call('save')
             ->assertHasNoErrors();
 
-        $this->assertSame('New title', $course->refresh()->title);
+        $course->refresh();
+
+        $this->assertSame('New name', $course->name);
+        $this->assertSame([$investments->id], $course->categories->pluck('id')->all());
     }
 
     public function test_capacity_cannot_drop_below_registered_participants(): void

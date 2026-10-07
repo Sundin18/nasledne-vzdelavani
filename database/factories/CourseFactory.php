@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Category;
 use App\Models\Course;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -20,14 +21,26 @@ class CourseFactory extends Factory
         $start = now()->addDays(fake()->numberBetween(3, 60))->setTime(9, 0);
 
         return [
-            'title' => fake()->sentence(4),
-            'categories' => fake()->randomElements(config('courses.categories'), 2),
-            'starts_at' => $start,
-            'ends_at' => $start->addHours(6),
+            'start' => $start,
+            'end' => $start->addHours(6),
+            'name' => fake()->sentence(4),
             'place' => fake()->city(),
             'capacity' => 20,
             'content' => '<p>'.fake()->paragraph().'</p>',
+            'user_id' => null,
         ];
+    }
+
+    /**
+     * Attach up to two existing categories to every created course.
+     */
+    public function configure(): static
+    {
+        return $this->afterCreating(function (Course $course) {
+            $course->categories()->attach(
+                Category::query()->inRandomOrder()->limit(2)->pluck('id'),
+            );
+        });
     }
 
     /**
@@ -39,8 +52,8 @@ class CourseFactory extends Factory
             $start = now()->subDays(fake()->numberBetween(3, 60))->setTime(9, 0);
 
             return [
-                'starts_at' => $start,
-                'ends_at' => $start->addHours(6),
+                'start' => $start,
+                'end' => $start->addHours(6),
             ];
         });
     }

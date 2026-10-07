@@ -35,11 +35,11 @@
                 <div class="name">{{ $registration->user->name }}</div>
 
                 <p class="muted" style="margin-top: 6mm;">
-                    se dne <strong style="color: #171717;">{{ $registration->course->starts_at->format('j. n. Y') }}</strong> zúčastnil(a) kurzu
+                    se dne <strong style="color: #171717;">{{ $registration->course->start->format('j. n. Y') }}</strong> zúčastnil(a) kurzu
                 </p>
-                <div class="course">{{ $registration->course->title }}</div>
+                <div class="course">{{ $registration->course->name }}</div>
                 <p class="muted" style="margin-top: 3mm;">
-                    Kategorie: {{ implode(', ', $registration->course->categories) }}
+                    Kategorie: {{ $registration->course->categoryNames() }}
                     · Termín: {{ $registration->course->formattedTerm() }}
                     · Místo: {{ $registration->course->place }}
                 </p>

@@ -20,7 +20,7 @@ class CertificateController extends Controller
     {
         Gate::authorize('download-certificate', $registration);
 
-        $registration->load(['course', 'user']);
+        $registration->load(['course.categories', 'user']);
 
         return $this->pdf(collect([$registration]))
             ->download('certifikat-'.Str::slug($registration->user->name).'-'.$registration->certificateNumber().'.pdf');
@@ -33,7 +33,7 @@ class CertificateController extends Controller
     {
         $registrations = $course->registrations()
             ->where('attended', true)
-            ->with(['course', 'user'])
+            ->with(['course.categories', 'user'])
             ->get()
             ->sortBy('user.name')
             ->values();
@@ -41,7 +41,7 @@ class CertificateController extends Controller
         abort_if($registrations->isEmpty(), 404, 'Žádný účastník nemá potvrzenou účast.');
 
         return $this->pdf($registrations)
-            ->download('certifikaty-'.Str::slug($course->title).'.pdf');
+            ->download('certifikaty-'.Str::slug($course->name).'.pdf');
     }
 
     /**

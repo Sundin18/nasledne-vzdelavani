@@ -27,7 +27,7 @@ class CourseRegistrationCreated extends Mailable implements ShouldQueue
         $course = $this->registration->course;
 
         return new Envelope(
-            subject: 'Nová přihláška: '.$course->title.' ('.$course->starts_at->format('j. n. Y').')',
+            subject: 'Nová přihláška: '.$course->name.' ('.$course->start->format('j. n. Y').')',
         );
     }
 

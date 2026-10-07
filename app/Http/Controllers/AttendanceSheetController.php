@@ -23,6 +23,6 @@ class AttendanceSheetController extends Controller
         return Pdf::loadView('pdf.attendance-sheet', [
             'course' => $course,
             'registrations' => $registrations,
-        ])->setPaper('a4')->download('prezencni-listina-'.Str::slug($course->title).'.pdf');
+        ])->setPaper('a4')->download('prezencni-listina-'.Str::slug($course->name).'.pdf');
     }
 }

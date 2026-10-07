@@ -22,21 +22,21 @@ class CourseListTest extends TestCase
 
     public function test_users_see_only_upcoming_courses_nearest_first(): void
     {
-        $later = Course::factory()->create(['title' => 'Later course', 'starts_at' => now()->addDays(20), 'ends_at' => now()->addDays(20)->addHours(4)]);
-        $sooner = Course::factory()->create(['title' => 'Sooner course', 'starts_at' => now()->addDays(2), 'ends_at' => now()->addDays(2)->addHours(4)]);
-        Course::factory()->past()->create(['title' => 'Past course']);
+        $later = Course::factory()->create(['name' => 'Later course', 'start' => now()->addDays(20), 'end' => now()->addDays(20)->addHours(4)]);
+        $sooner = Course::factory()->create(['name' => 'Sooner course', 'start' => now()->addDays(2), 'end' => now()->addDays(2)->addHours(4)]);
+        Course::factory()->past()->create(['name' => 'Past course']);
 
         $this->actingAs(User::factory()->create());
 
         $this->get(route('courses.index'))
             ->assertOk()
-            ->assertSeeInOrder([$sooner->title, $later->title])
+            ->assertSeeInOrder([$sooner->name, $later->name])
             ->assertDontSee('Past course');
     }
 
     public function test_users_cannot_switch_to_past_courses(): void
     {
-        Course::factory()->past()->create(['title' => 'Past course']);
+        Course::factory()->past()->create(['name' => 'Past course']);
 
         $this->actingAs(User::factory()->create());
 
@@ -47,7 +47,7 @@ class CourseListTest extends TestCase
 
     public function test_admins_can_see_past_courses(): void
     {
-        Course::factory()->past()->create(['title' => 'Past course']);
+        Course::factory()->past()->create(['name' => 'Past course']);
 
         $this->actingAs(User::factory()->admin()->create());
 
@@ -88,8 +88,8 @@ class CourseListTest extends TestCase
 
         $mail->assertSeeInHtml($registration->user->name);
         $mail->assertSeeInHtml($registration->user->email);
-        $mail->assertSeeInHtml($registration->course->title);
-        $mail->assertSeeInHtml($registration->course->starts_at->format('j. n. Y'));
+        $mail->assertSeeInHtml($registration->course->name);
+        $mail->assertSeeInHtml($registration->course->start->format('j. n. Y'));
     }
 
     public function test_user_cannot_register_for_a_full_course(): void

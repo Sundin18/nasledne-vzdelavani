@@ -5,28 +5,31 @@ namespace App\Models;
 use Database\Factories\CourseFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Collection;
 
 /**
  * @property int $id
- * @property string $title
- * @property array<int, string> $categories
- * @property Carbon $starts_at
- * @property Carbon $ends_at
+ * @property Carbon $start
+ * @property Carbon $end
+ * @property string $name
  * @property string $place
  * @property int $capacity
  * @property string|null $content
+ * @property int|null $user_id
  * @property int|null $registrations_count
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property-read User|null $user
+ * @property-read Collection<int, Category> $categories
  * @property-read Collection<int, CourseRegistration> $registrations
  */
-#[Fillable(['title', 'categories', 'starts_at', 'ends_at', 'place', 'capacity', 'content'])]
+#[Fillable(['start', 'end', 'name', 'place', 'capacity', 'content', 'user_id'])]
 class Course extends Model
 {
     /** @use HasFactory<CourseFactory> */
@@ -40,11 +43,28 @@ class Course extends Model
     protected function casts(): array
     {
         return [
-            'categories' => 'array',
-            'starts_at' => 'datetime',
-            'ends_at' => 'datetime',
+            'start' => 'datetime',
+            'end' => 'datetime',
             'capacity' => 'integer',
         ];
+    }
+
+    /**
+     * The administrator who created the course.
+     *
+     * @return BelongsTo<User, $this>
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * @return BelongsToMany<Category, $this>
+     */
+    public function categories(): BelongsToMany
+    {
+        return $this->belongsToMany(Category::class)->orderBy('name');
     }
 
     /**
@@ -72,7 +92,7 @@ class Course extends Model
      */
     public function scopeUpcoming(Builder $query): void
     {
-        $query->where('starts_at', '>', now())->orderBy('starts_at');
+        $query->where('start', '>', now())->orderBy('start');
     }
 
     /**
@@ -82,12 +102,12 @@ class Course extends Model
      */
     public function scopePast(Builder $query): void
     {
-        $query->where('starts_at', '<=', now())->orderByDesc('starts_at');
+        $query->where('start', '<=', now())->orderByDesc('start');
     }
 
     public function hasStarted(): bool
     {
-        return $this->starts_at->isPast();
+        return $this->start->isPast();
     }
 
     public function registeredCount(): int
@@ -106,14 +126,22 @@ class Course extends Model
     }
 
     /**
+     * Category names joined for display, e.g. "Obecné, Investice".
+     */
+    public function categoryNames(): string
+    {
+        return $this->categories->pluck('name')->implode(', ');
+    }
+
+    /**
      * Human readable date and time range, e.g. "19. 11. 2026, 9:00 – 16:00".
      */
     public function formattedTerm(): string
     {
-        $start = $this->starts_at->format('j. n. Y, G:i');
+        $start = $this->start->format('j. n. Y, G:i');
 
-        return $this->starts_at->isSameDay($this->ends_at)
-            ? $start.' – '.$this->ends_at->format('G:i')
-            : $start.' – '.$this->ends_at->format('j. n. Y, G:i');
+        return $this->start->isSameDay($this->end)
+            ? $start.' – '.$this->end->format('G:i')
+            : $start.' – '.$this->end->format('j. n. Y, G:i');
     }
 }
