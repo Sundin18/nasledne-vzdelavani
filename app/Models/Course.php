@@ -60,11 +60,14 @@ class Course extends Model
     }
 
     /**
+     * Categories of the course, including soft deleted ones: deleting a
+     * category hides it from new courses but keeps it on existing ones.
+     *
      * @return BelongsToMany<Category, $this>
      */
     public function categories(): BelongsToMany
     {
-        return $this->belongsToMany(Category::class)->orderBy('name');
+        return $this->belongsToMany(Category::class)->withTrashed()->orderBy('name');
     }
 
     /**

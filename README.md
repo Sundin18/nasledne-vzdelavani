@@ -14,6 +14,7 @@ Webová aplikace pro přihlašování na kurzy následného vzdělávání. Post
 
 - Na stránce Kurzy vidí i proběhlé kurzy a může kurz přidat, upravit, smazat nebo otevřít jeho detail.
 - **Formulář kurzu**: název, kategorie (lze vybrat více), začátek a konec s časem, místo, kapacita a obsah (rich text).
+- **Kategorie** (`/admin/kategorie`): přidání, přejmenování a smazání kategorie. Mazání je měkké (soft delete): smazaná kategorie se přestane nabízet u nových kurzů, ale u stávajících kurzů zůstane. Smazané kategorie lze obnovit.
 - **Detail kurzu**: seznam přihlášených, zaškrtnutí „Zúčastnil se“ (jednotlivě i hromadně), PDF prezenční listina, PDF certifikát pro jednoho účastníka nebo hromadně pro všechny zúčastněné.
 
 **Notifikace**: po každém přihlášení odejde na pozadí (fronta) e-mail na `akreditovane.zkousky@mycomm.cz` se jménem, e-mailem účastníka, názvem a datem kurzu.
@@ -58,7 +59,7 @@ php artisan app:make-admin jmeno@firma.cz --revoke   # odebrání práv
 | Tabulka | Sloupce |
 |---|---|
 | `courses` | `id`, `start`, `end` (datetime), `name`, `place`, `capacity`, `content` (obsah, nullable), `user_id` (admin, který kurz založil), `created_at`, `updated_at` |
-| `categories` | `id`, `name`. Výchozí kategorie vloží migrace. |
+| `categories` | `id`, `name`, `deleted_at` (soft delete). Výchozí kategorie vloží migrace. |
 | `category_course` | `category_id`, `course_id` (vazba M:N, kurz může mít více kategorií) |
 | `course_registrations` | `id`, `course_id`, `user_id`, `attended`, `created_at`, `updated_at` (přihlášky a účast) |
 

@@ -16,6 +16,11 @@
                 <flux:navbar.item icon="academic-cap" :href="route('courses.mine')" :current="request()->routeIs('courses.mine')" wire:navigate>
                     Moje kurzy
                 </flux:navbar.item>
+                @can('admin')
+                    <flux:navbar.item icon="tag" :href="route('admin.categories.index')" :current="request()->routeIs('admin.categories.*')" wire:navigate>
+                        Kategorie
+                    </flux:navbar.item>
+                @endcan
             </flux:navbar>
 
             <flux:spacer />
@@ -41,6 +46,11 @@
                 <flux:sidebar.item icon="academic-cap" :href="route('courses.mine')" :current="request()->routeIs('courses.mine')" wire:navigate>
                     Moje kurzy
                 </flux:sidebar.item>
+                @can('admin')
+                    <flux:sidebar.item icon="tag" :href="route('admin.categories.index')" :current="request()->routeIs('admin.categories.*')" wire:navigate>
+                        Kategorie
+                    </flux:sidebar.item>
+                @endcan
             </flux:sidebar.nav>
         </flux:sidebar>
 

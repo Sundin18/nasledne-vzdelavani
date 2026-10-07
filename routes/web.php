@@ -19,6 +19,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('{course}/certifikaty', [CertificateController::class, 'course'])->name('certificates');
         Route::get('{course}/prezencni-listina', AttendanceSheetController::class)->name('attendance-sheet');
     });
+
+    Route::middleware('can:admin')->group(function () {
+        Route::livewire('admin/kategorie', 'pages::admin.categories.index')->name('admin.categories.index');
+    });
 });
 
 require __DIR__.'/settings.php';

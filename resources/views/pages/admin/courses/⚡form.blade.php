@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\Rule;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Component;
@@ -54,7 +55,12 @@ new #[Title('Kurz')] class extends Component {
     #[Computed]
     public function allCategories(): Collection
     {
-        return Category::query()->orderBy('name')->get();
+        $assigned = $this->course?->categories()->pluck('categories.id')->all() ?? [];
+
+        return Category::withTrashed()
+            ->where(fn ($query) => $query->whereNull('deleted_at')->orWhereIn('id', $assigned))
+            ->orderBy('name')
+            ->get();
     }
 
     /**
@@ -67,7 +73,9 @@ new #[Title('Kurz')] class extends Component {
         return [
             'name' => ['required', 'string', 'max:255'],
             'categories' => ['required', 'array', 'min:1'],
-            'categories.*' => ['integer', 'exists:categories,id'],
+            'categories.*' => ['integer', Rule::exists('categories', 'id')->where(
+                fn ($query) => $query->whereNull('deleted_at')->orWhereIn('id', $this->course?->categories()->pluck('categories.id')->all() ?? []),
+            )],
             'start' => ['required', 'date'],
             'end' => ['required', 'date', 'after:start'],
             'place' => ['required', 'string', 'max:255'],
@@ -139,7 +147,7 @@ new #[Title('Kurz')] class extends Component {
             <flux:checkbox.group wire:model="categories" label="Kategorie" description="Lze vybrat více kategorií.">
                 <div class="flex flex-wrap gap-x-6 gap-y-3">
                     @foreach ($this->allCategories as $category)
-                        <flux:checkbox :value="(string) $category->id" :label="$category->name" />
+                        <flux:checkbox :value="(string) $category->id" :label="$category->trashed() ? $category->name.' (smazaná)' : $category->name" />
                     @endforeach
                 </div>
             </flux:checkbox.group>
