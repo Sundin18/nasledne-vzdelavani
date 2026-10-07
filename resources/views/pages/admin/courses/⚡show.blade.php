@@ -90,13 +90,13 @@ new #[Title('Detail kurzu')] class extends Component {
                     <flux:badge size="sm" color="zinc">Proběhlo</flux:badge>
                 @endif
             </div>
-            <flux:heading size="xl" level="1">{{ $course->name }}</flux:heading>
+            <flux:heading size="xl" class="text-accent-content" level="1">{{ $course->name }}</flux:heading>
         </div>
 
         <div class="flex flex-wrap gap-2">
             <flux:button icon="pencil-square" :href="route('admin.courses.edit', $course)" wire:navigate>Upravit</flux:button>
             <flux:modal.trigger name="delete-course">
-                <flux:button icon="trash" class="text-red-600! dark:text-red-400!">Smazat</flux:button>
+                <flux:button icon="trash" color="red" variant="primary">Smazat</flux:button>
             </flux:modal.trigger>
         </div>
     </div>
@@ -124,7 +124,7 @@ new #[Title('Detail kurzu')] class extends Component {
         </dl>
     </flux:card>
 
-    <section class="flex flex-col gap-3">
+    <section class="flex flex-col gap-3 mt-4">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <flux:heading size="lg">Účastníci ({{ $this->registrations->count() }})</flux:heading>
 

@@ -238,7 +238,7 @@ new #[Title('Kurzy')] class extends Component {
                             Obsah kurzu
                             <flux:icon.chevron-down variant="micro" class="transition group-open:rotate-180" />
                         </summary>
-                        <div class="course-content mt-3 max-w-3xl">
+                        <div class="course-content mt-3 max-w-3xl transition duration-300">
                             {!! $course->content !!}
                         </div>
                     </details>
