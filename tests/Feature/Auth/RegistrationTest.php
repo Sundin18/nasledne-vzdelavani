@@ -38,4 +38,19 @@ class RegistrationTest extends TestCase
 
         $this->assertAuthenticated();
     }
+
+    public function test_validation_errors_are_translated_to_czech(): void
+    {
+        $this->app->setLocale('cs');
+
+        $response = $this->post(route('register.store'), [
+            'name' => 'John Doe',
+            'email' => 'test@example.com',
+            'password' => 'password',
+            'password_confirmation' => 'different',
+        ]);
+
+        $response->assertSessionHasErrors(['password' => 'Potvrzení pole heslo se neshoduje.']);
+        $this->assertGuest();
+    }
 }
