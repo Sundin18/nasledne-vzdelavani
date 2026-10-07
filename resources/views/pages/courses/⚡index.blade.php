@@ -3,6 +3,7 @@
 use App\Actions\Courses\RegisterForCourse;
 use App\Models\Course;
 use Flux\Flux;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -11,8 +12,11 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 new #[Title('Kurzy')] class extends Component {
+    use WithPagination;
+
     /**
      * Which courses an administrator is looking at: "upcoming" or "past".
      */
@@ -28,18 +32,24 @@ new #[Title('Kurzy')] class extends Component {
     }
 
     /**
-     * Upcoming courses, nearest first. Administrators can switch to past ones.
+     * Upcoming courses, nearest first. Administrators can switch to past
+     * ones, which are paginated by 30.
      *
-     * @return Collection<int, Course>
+     * @return Collection<int, Course>|LengthAwarePaginator<int, Course>
      */
     #[Computed]
-    public function courses(): Collection
+    public function courses(): Collection|LengthAwarePaginator
     {
         $query = Course::query()->with('categories')->withCount('registrations');
 
         return $this->isAdmin && $this->show === 'past'
-            ? $query->past()->get()
+            ? $query->past()->paginate(30)
             : $query->upcoming()->get();
+    }
+
+    public function updatedShow(): void
+    {
+        $this->resetPage();
     }
 
     /**
@@ -242,6 +252,10 @@ new #[Title('Kurzy')] class extends Component {
             </flux:card>
         @endforelse
     </div>
+
+    @if ($this->courses instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator)
+        <flux:pagination :paginator="$this->courses" />
+    @endif
 
     @if ($this->isAdmin)
         <flux:modal name="delete-course" class="max-w-md">

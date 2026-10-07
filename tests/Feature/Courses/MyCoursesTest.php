@@ -45,6 +45,29 @@ class MyCoursesTest extends TestCase
             ->assertSee('Účast nepotvrzena');
     }
 
+    public function test_past_courses_are_paginated_by_thirty(): void
+    {
+        $user = User::factory()->create();
+
+        Course::factory()->past()->count(31)->sequence(
+            fn ($sequence) => [
+                'name' => 'Past course '.($sequence->index + 1),
+                'start' => now()->subDays($sequence->index + 1),
+                'end' => now()->subDays($sequence->index + 1)->addHours(4),
+            ],
+        )->create()->each(fn (Course $course) => CourseRegistration::factory()->for($course)->for($user)->create());
+
+        $this->actingAs($user);
+
+        Livewire::test('pages::courses.mine')
+            ->set('show', 'past')
+            ->assertSee('Proběhlé (31)')
+            ->assertSee('Past course 30')
+            ->assertDontSee('Past course 31')
+            ->call('gotoPage', 2)
+            ->assertSee('Past course 31');
+    }
+
     public function test_user_can_unregister_from_my_courses(): void
     {
         $user = User::factory()->create();

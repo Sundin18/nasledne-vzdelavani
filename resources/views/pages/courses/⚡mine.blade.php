@@ -2,14 +2,18 @@
 
 use App\Models\CourseRegistration;
 use Flux\Flux;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 new #[Title('Moje kurzy')] class extends Component {
+    use WithPagination;
+
     /**
      * Which registrations are shown: "upcoming" or "past".
      */
@@ -17,34 +21,42 @@ new #[Title('Moje kurzy')] class extends Component {
     public string $show = 'upcoming';
 
     /**
-     * @return Collection<int, CourseRegistration>
-     */
-    #[Computed]
-    public function registrations(): Collection
-    {
-        return Auth::user()->courseRegistrations()
-            ->with('course.categories')
-            ->get()
-            ->sortBy('course.start')
-            ->values();
-    }
-
-    /**
+     * Registrations for courses that have not started yet, nearest first.
+     *
      * @return Collection<int, CourseRegistration>
      */
     #[Computed]
     public function upcoming(): Collection
     {
-        return $this->registrations->reject(fn (CourseRegistration $r) => $r->course->hasStarted())->values();
+        return Auth::user()->courseRegistrations()
+            ->select('course_registrations.*')
+            ->join('courses', 'courses.id', '=', 'course_registrations.course_id')
+            ->where('courses.start', '>', now())
+            ->orderBy('courses.start')
+            ->with('course.categories')
+            ->get();
     }
 
     /**
-     * @return Collection<int, CourseRegistration>
+     * Registrations for courses that have already started, most recent first, 30 per page.
+     *
+     * @return LengthAwarePaginator<int, CourseRegistration>
      */
     #[Computed]
-    public function past(): Collection
+    public function past(): LengthAwarePaginator
     {
-        return $this->registrations->filter(fn (CourseRegistration $r) => $r->course->hasStarted())->reverse()->values();
+        return Auth::user()->courseRegistrations()
+            ->select('course_registrations.*')
+            ->join('courses', 'courses.id', '=', 'course_registrations.course_id')
+            ->where('courses.start', '<=', now())
+            ->orderByDesc('courses.start')
+            ->with('course.categories')
+            ->paginate(30);
+    }
+
+    public function updatedShow(): void
+    {
+        $this->resetPage();
     }
 
     public function unregister(int $registrationId): void
@@ -59,7 +71,7 @@ new #[Title('Moje kurzy')] class extends Component {
 
         $registration->delete();
 
-        unset($this->registrations, $this->upcoming, $this->past);
+        unset($this->upcoming, $this->past);
 
         Flux::toast(text: 'Byli jste odhlášeni z kurzu „'.$registration->course->name.'“.');
     }
@@ -73,7 +85,7 @@ new #[Title('Moje kurzy')] class extends Component {
 
     <flux:radio.group wire:model.live="show" variant="segmented" class="w-fit">
         <flux:radio value="upcoming" label="Nadcházející ({{ $this->upcoming->count() }})" />
-        <flux:radio value="past" label="Proběhlé ({{ $this->past->count() }})" />
+        <flux:radio value="past" label="Proběhlé ({{ $this->past->total() }})" />
     </flux:radio.group>
 
     @php($list = $show === 'past' ? $this->past : $this->upcoming)
@@ -120,4 +132,8 @@ new #[Title('Moje kurzy')] class extends Component {
             </flux:card>
         @endforelse
     </div>
+
+    @if ($show === 'past')
+        <flux:pagination :paginator="$this->past" />
+    @endif
 </div>

@@ -56,6 +56,27 @@ class CourseListTest extends TestCase
             ->assertSee('Past course');
     }
 
+    public function test_past_courses_are_paginated_by_thirty(): void
+    {
+        Course::factory()->past()->count(31)->sequence(
+            fn ($sequence) => [
+                'name' => 'Past course '.($sequence->index + 1),
+                'start' => now()->subDays($sequence->index + 1),
+                'end' => now()->subDays($sequence->index + 1)->addHours(4),
+            ],
+        )->create();
+
+        $this->actingAs(User::factory()->admin()->create());
+
+        Livewire::test('pages::courses.index')
+            ->set('show', 'past')
+            ->assertSee('Past course 30')
+            ->assertDontSee('Past course 31')
+            ->call('gotoPage', 2)
+            ->assertSee('Past course 31')
+            ->assertDontSee('Past course 30');
+    }
+
     public function test_user_can_register_for_a_course_and_the_organizer_is_notified(): void
     {
         Mail::fake();
