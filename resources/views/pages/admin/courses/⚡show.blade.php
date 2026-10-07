@@ -82,7 +82,7 @@ new #[Title('Detail kurzu')] class extends Component {
 
     <div class="flex flex-wrap items-end justify-between gap-4">
         <div class="space-y-2">
-            <div class="flex flex-wrap gap-1.5">
+            <div class="flex flex-wrap gap-1.5 mb-5">
                 @foreach ($course->categories as $category)
                     <flux:badge size="sm">{{ $category->name }}</flux:badge>
                 @endforeach
@@ -146,7 +146,7 @@ new #[Title('Detail kurzu')] class extends Component {
             @if ($this->registrations->isEmpty())
                 <flux:text class="p-6 text-center">Na kurz zatím není nikdo přihlášen.</flux:text>
             @else
-                <flux:table class="min-w-[44rem]">
+                <flux:table class="w-full">
                     <flux:table.columns>
                         <flux:table.column class="ps-6!">Jméno a příjmení</flux:table.column>
                         <flux:table.column>E-mail</flux:table.column>
@@ -169,7 +169,9 @@ new #[Title('Detail kurzu')] class extends Component {
                                 </flux:table.cell>
                                 <flux:table.cell class="whitespace-nowrap">{{ $registration->created_at?->format('j. n. Y') }}</flux:table.cell>
                                 <flux:table.cell>
-                                    <flux:checkbox
+                                    <flux:switch
+                                        wire:key="attended-{{ $registration->id }}-{{ (int) $registration->attended }}"
+                                        align="left"
                                         :checked="$registration->attended"
                                         wire:click="toggleAttendance({{ $registration->id }})"
                                         :label="$registration->attended ? 'Ano' : 'Ne'"
@@ -178,7 +180,7 @@ new #[Title('Detail kurzu')] class extends Component {
                                 </flux:table.cell>
                                 <flux:table.cell align="end" class="pe-6!">
                                     @if ($registration->attended)
-                                        <flux:button size="sm" icon="arrow-down-tray" :href="route('certificates.show', $registration)">PDF</flux:button>
+                                        <flux:button size="xs" icon="arrow-down-tray" :href="route('certificates.show', $registration)">Certifikát</flux:button>
                                     @else
                                         <span class="text-sm text-zinc-400">Jen po účasti</span>
                                     @endif
@@ -189,7 +191,7 @@ new #[Title('Detail kurzu')] class extends Component {
                 </flux:table>
             @endif
         </flux:card>
-        <flux:text class="text-sm">Účast se ukládá hned po zaškrtnutí. Kliknutím na záhlaví „Zúčastnil se“ označíte nebo odznačíte všechny.</flux:text>
+        <flux:text class="text-xs">Účast se ukládá hned po přepnutí. Kliknutím na záhlaví „Zúčastnil se“ označíte nebo odznačíte všechny.</flux:text>
     </section>
 
     @if (filled($course->content))
