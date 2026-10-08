@@ -161,6 +161,8 @@
       <excludeFolder url="file://$MODULE_DIR$/vendor/web-auth/cose-lib" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/web-auth/webauthn-lib" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/webmozart/assert" />
+      <excludeFolder url="file://$MODULE_DIR$/storage/pail" />
+      <excludeFolder url="file://$MODULE_DIR$/vendor/jacobjoergensen/laravel-paper" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
