@@ -23,16 +23,16 @@
     --color-zinc-900: #171717;
     --color-zinc-950: #0a0a0a;
 
-    --color-accent: var(--color-neutral-800);
-    --color-accent-content: var(--color-neutral-800);
+    --color-accent: var(--color-blue-700);
+    --color-accent-content: var(--color-blue-700);
     --color-accent-foreground: var(--color-white);
 }
 
 @layer theme {
     .dark {
-        --color-accent: var(--color-white);
-        --color-accent-content: var(--color-white);
-        --color-accent-foreground: var(--color-neutral-800);
+        --color-accent: var(--color-blue-500);
+        --color-accent-content: var(--color-blue-400);
+        --color-accent-foreground: var(--color-white);
     }
 }
 
@@ -64,3 +64,28 @@ select:focus[data-flux-control] {
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */
+
+/* Rich text produced by the course editor */
+.course-content {
+    @apply text-sm leading-relaxed text-zinc-700 dark:text-zinc-300;
+}
+
+.course-content :where(p, ul, ol, blockquote) {
+    @apply mb-3 last:mb-0;
+}
+
+.course-content :where(h1, h2, h3, h4) {
+    @apply mt-4 mb-2 font-semibold text-zinc-900 first:mt-0 dark:text-white;
+}
+
+.course-content :where(ul) {
+    @apply list-disc ps-5;
+}
+
+.course-content :where(ol) {
+    @apply list-decimal ps-5;
+}
+
+.course-content :where(a) {
+    @apply text-accent-content underline;
+}
