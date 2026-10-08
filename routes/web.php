@@ -2,9 +2,11 @@
 
 use App\Http\Controllers\AttendanceSheetController;
 use App\Http\Controllers\CertificateController;
+use App\Http\Controllers\PageController;
 use Illuminate\Support\Facades\Route;
 
 Route::view('/', 'welcome')->name('home');
+Route::get('stranky/{page}', PageController::class)->name('pages.show');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::livewire('kurzy', 'pages::courses.index')->name('courses.index');
